@@ -1,7 +1,7 @@
 {
   "displayName": "Homebridge Argo",
   "name": "homebridge-argo",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Homebridge plugin for Argo air conditioners",
   "license": "Apache-2.0",
   "homepage": "https://github.com/0skillallluck/homebridge-argo",
