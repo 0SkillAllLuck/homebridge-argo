@@ -1,0 +1,50 @@
+{
+  "pluginAlias": "Argo",
+  "pluginType": "platform",
+  "headerDisplay": "This plugin supports the Ulisse 13 DCI Eco WiFi from Argoclimate.",
+  "footerDisplay": "For help please visit the [GitHub repository](https://github.com/0SkillAllLuck/homebridge-argo).",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "devices": {
+        "title": "Devices",
+        "description": "The devices to control",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "description": "The display name for the Argo device",
+              "type": "string",
+              "required": true
+            },
+            "ip": {
+              "title": "IP or hostname",
+              "description": "The IP or hostname of the Argo device",
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      },
+      "usePush": {
+        "title": "Use Push",
+        "description": "Use fake argo server to get device updates, please read README for more information",
+        "type": "boolean",
+        "default": false
+      },
+      "port": {
+        "title": "Port",
+        "description": "The port for the push server",
+        "type": "integer",
+        "maximum": 65535,
+        "default": 24242,
+        "condition": {
+            "functionBody": "return model.usePush === true;"
+        }
+      }
+    }
+  }
+}
