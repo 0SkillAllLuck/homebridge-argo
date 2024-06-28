@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Homebridge plugin for Argo air conditioners",
   "license": "Apache-2.0",
-  "type": "module",
+  "homepage": "https://github.com/0skillallluck/homebridge-argo",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0skillallluck/homebridge-argo.git"
@@ -26,6 +26,7 @@
   "keywords": [
     "homebridge",
     "homebridge-plugin",
+    "argo",
     "air-conditioner"
   ],
   "devDependencies": {
