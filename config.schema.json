@@ -46,7 +46,7 @@
         "description": "The port for the push server",
         "type": "integer",
         "maximum": 65535,
-        "default": 24242,
+        "default": 42420,
         "condition": {
             "functionBody": "return model.usePush === true;"
         }
