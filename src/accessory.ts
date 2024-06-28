@@ -74,51 +74,42 @@ export class ArgoAccessory {
       .onSet(this.setRotationSpeed.bind(this));
 
     // If the device is not using push updates, poll the device every 15 seconds
-    if (!platform.config.usePush) {
-      setInterval(async () => {
-        this.api.get()
-          .then((res) => this.updateState(res))
-          .then(() => this.platform.log.debug('polling succeeded'))
-          .catch(() => this.platform.log.error('polling failed'));
-
-      }, 15000);
-    }
+    // if it is check for pending updates every second
+    setInterval(async () => {
+      if (!platform.config.usePush || this.api.pending()) {
+        this.api.sync()
+          .then((hmi) => this.updateState(hmi))
+          .catch(() => null);
+      }
+    }, !platform.config.usePush ? 15000 : 1000);
   }
 
   async setActive(value: CharacteristicValue): Promise<void> {
     const operatingMode = value === this.platform.Characteristic.Active.ACTIVE ? 1 : 0;
 
-    this.api.setOperatingMode(operatingMode)
-      .then((res) => this.updateState(res))
-      .then(() => this.platform.log.debug('setActive ->', value))
-      .catch((error) => this.platform.log.error('setActive ->', error));
+    this.api.setOperatingMode(operatingMode);
+    this.platform.log.debug('setActive ->', value, operatingMode);
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
     const targetTemperature = value as number * 10;
 
-    this.api.setTargetTemperature(targetTemperature)
-      .then((res) => this.updateState(res))
-      .then(() => this.platform.log.debug('setCoolingThresholdTemperature ->', value))
-      .catch((error) => this.platform.log.error('setCoolingThresholdTemperature ->', error));
+    this.api.setTargetTemperature(targetTemperature);
+    this.platform.log.debug('setCoolingThresholdTemperature ->', value, targetTemperature);
   }
 
   async setTargetHeaterCoolerState(value: CharacteristicValue): Promise<void> {
     const operationMode = value === this.platform.Characteristic.TargetHeaterCoolerState.COOL ? 1 : 5;
 
-    this.api.setOperationMode(operationMode)
-      .then((res) => this.updateState(res))
-      .then(() => this.platform.log.debug('setTargetHeaterCoolerState ->', value))
-      .catch((error) => this.platform.log.error('setTargetHeaterCoolerState ->', error));
+    this.api.setOperationMode(operationMode);
+    this.platform.log.debug('setTargetHeaterCoolerState ->', value, operationMode);
   }
 
   async setRotationSpeed(value: CharacteristicValue): Promise<void> {
     const fanMode = value as 1 | 2 | 3 | 4 | 5 | 6;
 
-    this.api.setFanMode(fanMode)
-      .then((res) => this.updateState(res))
-      .then(() => this.platform.log.debug('setRotationSpeed ->', value))
-      .catch((error) => this.platform.log.error('setRotationSpeed ->', error));
+    this.api.setFanMode(fanMode);
+    this.platform.log.debug('setRotationSpeed ->', value, fanMode);
   }
 
   updateState(hmi: string): void {
