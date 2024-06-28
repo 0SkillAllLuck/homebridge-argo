@@ -2,7 +2,7 @@
   "displayName": "Argo",
   "name": "homebridge-argo",
   "version": "1.0.0",
-  "description": "Homebridge plugin for Argo Ulisse 13DCI air conditioners",
+  "description": "Homebridge plugin for Argo air conditioners",
   "license": "Apache-2.0",
   "type": "module",
   "repository": {
