@@ -1,5 +1,5 @@
 {
-  "displayName": "Argo",
+  "displayName": "Homebridge Argo",
   "name": "homebridge-argo",
   "version": "1.1.1",
   "description": "Homebridge plugin for Argo air conditioners",
