@@ -7,6 +7,12 @@
   "schema": {
     "type": "object",
     "properties": {
+      "name": {
+        "description": "Plugin name as displayed in the Homebridge log.",
+        "type": "string",
+        "required": true,
+        "default": "Argo"
+      },
       "devices": {
         "title": "Devices",
         "description": "The devices to control",
