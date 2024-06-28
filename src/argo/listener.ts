@@ -9,6 +9,7 @@ export class ArgoListener {
 
   constructor(
     private readonly log: Logging,
+    private readonly port: number,
     private readonly updateHandler: (ip: string, hmi: string) => void,
   ) {
     this.app = express();
@@ -17,8 +18,8 @@ export class ArgoListener {
   }
 
   public start(): void {
-    this.server = this.app.listen(8080, () => {
-      this.log.info('Listener started :8080');
+    this.server = this.app.listen(this.port, () => {
+      this.log.info(`Listener started :${this.port}`);
     });
   }
 

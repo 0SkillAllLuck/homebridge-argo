@@ -23,7 +23,7 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
     this.Characteristic = api.hap.Characteristic;
 
     this.listener = config.usePush
-      ? new ArgoListener(log, this.onPushUpdate.bind(this))
+      ? new ArgoListener(log, this.config.port, this.onPushUpdate.bind(this))
       : undefined;
 
     api.on('didFinishLaunching', this.onDidFinishLaunching.bind(this));
