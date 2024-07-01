@@ -43,8 +43,8 @@ export class ArgoAccessory {
     this.coolingThresholdTemperature = this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
       .setProps({
         unit: Units.CELSIUS,
-        minValue: 16,
-        maxValue: 30,
+        minValue: 10,
+        maxValue: 32,
         minStep: 1,
       })
       .onSet(this.setCoolingThresholdTemperature.bind(this));
