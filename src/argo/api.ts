@@ -26,16 +26,16 @@ export class ArgoApi {
 
   // Sync the HMI from the device, if required also update the HMI
   sync(): Promise<string> {
-    const HMI = this.nextHMI;
-    const UPD = this.pending() ? '1' : '0';
-
-    this.nextHMI = DEFAULT_HMI;
     return this.request.get<string>('', {
       params: {
-        HMI,
-        UPD,
+        HMI: this.nextHMI,
+        UPD: this.pending() ? '1' : '0',
       },
-    }).then((res) => res.data);
+    }).then((res) => {
+      // Only update here to prevent not sending updates on errors
+      this.nextHMI = DEFAULT_HMI;
+      return res.data;
+    });
   }
 
   // Set the target temperature

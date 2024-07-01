@@ -1,5 +1,4 @@
 import { Service, PlatformAccessory, CharacteristicValue, Units, Characteristic } from 'homebridge';
-
 import { ArgoPlatform } from './platform.js';
 import { ArgoApi } from './argo/api.js';
 
@@ -64,15 +63,8 @@ export class ArgoAccessory {
       })
       .onSet(this.setRotationSpeed.bind(this));
 
-    // If the device is not using push updates, poll the device every 15 seconds
-    // if it is check for pending updates every second
-    setInterval(async () => {
-      if (!platform.config.usePush || this.api.pending()) {
-        this.api.sync()
-          .then((hmi) => this.updateState(hmi))
-          .catch(() => null);
-      }
-    }, !platform.config.usePush ? 15000 : 1000);
+    // Start the polling loop
+    this.syncDevice();
   }
 
   async setActive(value: CharacteristicValue): Promise<void> {
@@ -122,5 +114,35 @@ export class ArgoAccessory {
         : this.platform.Characteristic.CurrentHeaterCoolerState.IDLE
       : this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE);
     this.rotationSpeed.updateValue(parseInt(parts[4]));
+  }
+
+  private nextPollAt = Date.now();
+  private async syncDevice(): Promise<void> {
+    // Store if an update was pending
+    const needsUpdate = this.api.pending();
+
+    // If there are pending updates, sync the device
+    if (needsUpdate){
+      await this.api.sync()
+        .catch(() => null);
+
+      // Set the next poll to 5 seconds from now
+      this.nextPollAt = Date.now() + 5000;
+    } else if (Date.now() >= this.nextPollAt) {
+      await this.api.sync()
+        .then((hmi) => this.updateState(hmi))
+        .catch(() => null);
+
+      // Set the next poll to 15 seconds from now
+      this.nextPollAt = Date.now() + 15000;
+    }
+
+    // If push is in use, set the next poll to 1 minute from now
+    if (this.platform.config.usePush) {
+      this.nextPollAt += + 60000;
+    }
+
+    // Schedule the next poll 1 second
+    setTimeout(this.syncDevice.bind(this), 1000);
   }
 }
