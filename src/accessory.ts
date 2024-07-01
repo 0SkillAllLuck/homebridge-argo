@@ -8,7 +8,6 @@ export class ArgoAccessory {
   private readonly active: Characteristic;
   private readonly currentTemperature: Characteristic;
   private readonly coolingThresholdTemperature: Characteristic;
-  private readonly heatingThresholdTemperature: Characteristic;
   private readonly targetHeaterCoolerState: Characteristic;
   private readonly currentHeaterCoolerState: Characteristic;
   private readonly rotationSpeed: Characteristic;
@@ -42,14 +41,6 @@ export class ArgoAccessory {
         minStep: 0.1,
       });
     this.coolingThresholdTemperature = this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
-      .setProps({
-        unit: Units.CELSIUS,
-        minValue: 16,
-        maxValue: 30,
-        minStep: 1,
-      })
-      .onSet(this.setCoolingThresholdTemperature.bind(this));
-    this.heatingThresholdTemperature = this.service.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
       .setProps({
         unit: Units.CELSIUS,
         minValue: 16,
@@ -122,7 +113,6 @@ export class ArgoAccessory {
     );
     this.currentTemperature.updateValue(parseInt(parts[1]) / 10);
     this.coolingThresholdTemperature.updateValue(parseInt(parts[0]) / 10);
-    this.heatingThresholdTemperature.updateValue(parseInt(parts[0]) / 10);
     this.targetHeaterCoolerState.updateValue(parseInt(parts[3]) === 1
       ? this.platform.Characteristic.TargetHeaterCoolerState.COOL
       : this.platform.Characteristic.TargetHeaterCoolerState.AUTO);
