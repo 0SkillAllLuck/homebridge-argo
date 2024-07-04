@@ -4,14 +4,24 @@
   "version": "1.2.2",
   "description": "Homebridge plugin for Argo air conditioners",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/0skillallluck/homebridge-argo",
+  "homepage": "https://github.com/0SkillAllLuck/homebridge-argo",
+  "author": "Cedric Lewe",
+  "maintainers": [
+    "0SkillAllLuck"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0skillallluck/homebridge-argo.git"
+    "url": "git+https://github.com/0SkillAllLuck/homebridge-argo.git"
   },
   "bugs": {
-    "url": "https://github.com/0skillallluck/homebridge-argo/issues"
+    "url": "https://github.com/0SkillAllLuck/homebridge-argo/issues"
   },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/0SkillAllLuck"
+    }
+  ],
   "engines": {
     "node": "^18.17.0 || ^20.9.0",
     "homebridge": "^1.7.0"
