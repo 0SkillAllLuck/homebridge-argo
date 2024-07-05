@@ -33,7 +33,30 @@ Alternatively you can configure it using the `config.json` file of Homebridge. S
   ]
 ```
 
-### Push based updates
+### Advanced device settings
+
+In some cases Argo devices don't accurately report the temperate. In those cases you can set a offset in the device configuration to
+help compensate for the inaccuracy.
+
+```json
+  "platforms": [
+    {
+      "platform": "Argo",
+      "devices": [
+        {
+          "name": "Example Display Name",
+          "ip": "192.168.5.30",
+          "offset": 2.5,
+        }
+      ]
+    }
+  ]
+```
+
+In the above example the temperature would be adjusted by 2.5 degrees. Meaning that the read temperature will be 2.5 degrees higher
+and all settings will be 2.5 degrees lower to compensate. *this also affects min/max setpoints*
+
+### Advanced settings
 
 Argo devices have a lot of issues with their connectivity as they seem to require a connection to their home server.
 To help with this we can let the device push updates to Homebridge instead of polling the device constantly.

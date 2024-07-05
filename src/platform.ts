@@ -57,14 +57,14 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
       const existing = this.accessories.find(accessory => accessory.UUID === uuid);
       if (existing) {
         this.log.info('Restoring existing accessory from cache:', existing.displayName);
-        this.argoAccessories.set(uuid, new ArgoAccessory(this, existing, api, device.name));
+        this.argoAccessories.set(uuid, new ArgoAccessory(this, existing, api, device.name, device.offset));
         continue;
       }
 
       // If the device does not exist yet, create a new accessory and register it
       this.log.info('Registering new accessory:', device.name);
       const accessory = new this.api.platformAccessory(device.name, uuid);
-      this.argoAccessories.set(uuid, new ArgoAccessory(this, accessory, api, device.name));
+      this.argoAccessories.set(uuid, new ArgoAccessory(this, accessory, api, device.name, device.offset));
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
 

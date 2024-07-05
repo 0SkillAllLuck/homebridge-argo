@@ -16,6 +16,7 @@ export class ArgoAccessory {
     private readonly accessory: PlatformAccessory,
     private readonly api: ArgoApi,
     name: string,
+    private offset?: number,
   ) {
     // Setup the base accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -42,8 +43,8 @@ export class ArgoAccessory {
     this.coolingThresholdTemperature = this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
       .setProps({
         unit: Units.CELSIUS,
-        minValue: 10,
-        maxValue: 32,
+        minValue: 10 + (this.offset ?? 0),
+        maxValue: 32 + (this.offset ?? 0),
         minStep: 1,
       })
       .onSet(this.setCoolingThresholdTemperature.bind(this));
@@ -75,7 +76,7 @@ export class ArgoAccessory {
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
-    const targetTemperature = value as number * 10;
+    const targetTemperature = (value as number) - (this.offset ?? 0) * 10;
 
     this.api.setTargetTemperature(targetTemperature);
     this.platform.log.debug('setCoolingThresholdTemperature ->', value, targetTemperature);
@@ -96,15 +97,16 @@ export class ArgoAccessory {
   }
 
   updateState(hmi: string): void {
-    this.platform.log.debug('updateState ->', hmi);
     const parts = hmi.split(',');
+    this.platform.log.debug('updateState ->', hmi, parseInt(parts[1]) / 10, (parseInt(parts[1]) / 10) + (this.offset ?? 0));
+
 
     this.active.updateValue(parseInt(parts[2]) === 1
       ? this.platform.Characteristic.Active.ACTIVE
       : this.platform.Characteristic.Active.INACTIVE,
     );
-    this.currentTemperature.updateValue(parseInt(parts[1]) / 10);
-    this.coolingThresholdTemperature.updateValue(parseInt(parts[0]) / 10);
+    this.currentTemperature.updateValue((parseInt(parts[1]) / 10) + (this.offset ?? 0));
+    this.coolingThresholdTemperature.updateValue((parseInt(parts[0]) / 10) + (this.offset ?? 0));
     this.targetHeaterCoolerState.updateValue(parseInt(parts[3]) === 1
       ? this.platform.Characteristic.TargetHeaterCoolerState.COOL
       : this.platform.Characteristic.TargetHeaterCoolerState.AUTO);
@@ -114,6 +116,8 @@ export class ArgoAccessory {
         : this.platform.Characteristic.CurrentHeaterCoolerState.IDLE
       : this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE);
     this.rotationSpeed.updateValue(parseInt(parts[4]));
+
+    // Firmware version (23)
   }
 
   private nextPollAt = Date.now();

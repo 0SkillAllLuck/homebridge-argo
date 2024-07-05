@@ -15,7 +15,7 @@
       },
       "devices": {
         "title": "Devices",
-        "description": "The devices to control",
+        "description": "The devices to connect/control",
         "type": "array",
         "items": {
           "type": "object",
@@ -31,13 +31,21 @@
               "description": "The IP or hostname of the Argo device",
               "type": "string",
               "required": true
+            },
+            "offset": {
+              "title": "Temperature Offset",
+              "description": "Adjust the temperature settings/readings by a offset, useful if the device is not accurate",
+              "type": "number",
+              "minimum": -4,
+              "maximum": 4,
+              "multipleOf": 0.1
             }
           }
         }
       },
       "usePush": {
         "title": "Use Push",
-        "description": "Use fake argo server to get device updates, please read README for more information",
+        "description": "Use fake argo server to get device updates, please read for more information",
         "type": "boolean",
         "default": false
       },
@@ -52,5 +60,61 @@
         }
       }
     }
-  }
+  },
+  "layout": [
+    "name",
+    {
+      "type": "array",
+      "key": "devices",
+      "items": [
+        {
+          "type": "div",
+          "displayFlex": true,
+          "flex-direction": "column",
+          "items": [
+            {
+              "type": "div",
+              "displayFlex": true,
+              "flex-direction": "row",
+              "items": [
+                {
+                  "key": "devices[].ip",
+                  "flex": "0 0 150px",
+                  "notitle": true,
+                  "nodescription": true,
+                  "placeholder": "IP or hostname"
+                },
+                {
+                  "key": "devices[].name",
+                  "flex": "1 1",
+                  "notitle": true,
+                  "nodescription": true,
+                  "placeholder": "Device name"
+                }
+              ]
+            },
+            {
+              "type": "fieldset",
+              "title": "Advanced device settings",
+              "description": "Advanced device settings, please read the instructions in the README first",
+              "expandable": true,
+              "items": [
+                "devices[].offset"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced settings",
+      "description": "Advanced settings for pull/push of device state updates, please read the instructions in the README first",
+      "expandable": true,
+      "items": [
+        "usePush",
+        "port"
+      ]
+    }
+  ]
 }
