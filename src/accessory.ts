@@ -3,7 +3,8 @@ import { ArgoPlatform } from './platform.js';
 import { ArgoApi } from './argo/api.js';
 
 export class ArgoAccessory {
-  private readonly service: Service;
+  private readonly information: Service;
+  private readonly heaterCooler: Service;
   private readonly active: Characteristic;
   private readonly currentTemperature: Characteristic;
   private readonly coolingThresholdTemperature: Characteristic;
@@ -19,20 +20,19 @@ export class ArgoAccessory {
     private offset?: number,
   ) {
     // Setup the base accessory information
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
+    this.information = this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Argo')
       .setCharacteristic(this.platform.Characteristic.Model, 'Ulisse 13 DCI Eco WiFi')
       .setCharacteristic(this.platform.Characteristic.Name, name)
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-SerialNumber')
-      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, 'Default-FirmwareRevision');
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-SerialNumber');
 
     // Setup the HeaterCooler service
-    this.service = this.accessory.getService(this.platform.Service.HeaterCooler)
+    this.heaterCooler = this.accessory.getService(this.platform.Service.HeaterCooler)
       || this.accessory.addService(this.platform.Service.HeaterCooler);
-    this.active = this.service
+    this.active = this.heaterCooler
       .getCharacteristic(this.platform.Characteristic.Active)
       .onSet(this.setActive.bind(this));
-    this.currentTemperature = this.service
+    this.currentTemperature = this.heaterCooler
       .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .setProps({
         unit: Units.CELSIUS,
@@ -40,7 +40,7 @@ export class ArgoAccessory {
         maxValue: 100,
         minStep: 0.1,
       });
-    this.coolingThresholdTemperature = this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+    this.coolingThresholdTemperature = this.heaterCooler.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
       .setProps({
         unit: Units.CELSIUS,
         minValue: 10 + (this.offset ?? 0),
@@ -48,15 +48,15 @@ export class ArgoAccessory {
         minStep: 1,
       })
       .onSet(this.setCoolingThresholdTemperature.bind(this));
-    this.targetHeaterCoolerState = this.service.getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
+    this.targetHeaterCoolerState = this.heaterCooler.getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
       .setProps({
         validValues: [
           this.platform.Characteristic.TargetHeaterCoolerState.COOL,
         ],
       })
       .onSet(this.setTargetHeaterCoolerState.bind(this));
-    this.currentHeaterCoolerState = this.service.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState);
-    this.rotationSpeed = this.service.getCharacteristic(this.platform.Characteristic.RotationSpeed)
+    this.currentHeaterCoolerState = this.heaterCooler.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState);
+    this.rotationSpeed = this.heaterCooler.getCharacteristic(this.platform.Characteristic.RotationSpeed)
       .setProps({
         minValue: 0,
         maxValue: 6,
@@ -97,9 +97,8 @@ export class ArgoAccessory {
   }
 
   updateState(hmi: string): void {
+    this.platform.log.debug('updateState ->', hmi);
     const parts = hmi.split(',');
-    this.platform.log.debug('updateState ->', hmi, parseInt(parts[1]) / 10, (parseInt(parts[1]) / 10) + (this.offset ?? 0));
-
 
     this.active.updateValue(parseInt(parts[2]) === 1
       ? this.platform.Characteristic.Active.ACTIVE
@@ -117,7 +116,7 @@ export class ArgoAccessory {
       : this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE);
     this.rotationSpeed.updateValue(parseInt(parts[4]));
 
-    // Firmware version (23)
+    this.information.setCharacteristic(this.platform.Characteristic.FirmwareRevision, parseInt(parts[23]).toFixed(0));
   }
 
   private nextPollAt = Date.now();
