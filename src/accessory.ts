@@ -16,8 +16,8 @@ export class ArgoAccessory {
     private readonly platform: ArgoPlatform,
     private readonly accessory: PlatformAccessory,
     private readonly api: ArgoApi,
-    name: string,
-    private offset?: number,
+    private readonly name: string,
+    private readonly offset: number = 0,
   ) {
     // Setup the base accessory information
     this.information = this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -43,8 +43,8 @@ export class ArgoAccessory {
     this.coolingThresholdTemperature = this.heaterCooler.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
       .setProps({
         unit: Units.CELSIUS,
-        minValue: 10 + (this.offset ?? 0),
-        maxValue: 32 + (this.offset ?? 0),
+        minValue: 10 + this.offset,
+        maxValue: 32 + this.offset,
         minStep: 1,
       })
       .onSet(this.setCoolingThresholdTemperature.bind(this));
@@ -76,7 +76,7 @@ export class ArgoAccessory {
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
-    const targetTemperature = (value as number) - (this.offset ?? 0) * 10;
+    const targetTemperature = (value as number) - this.offset * 10;
 
     this.api.setTargetTemperature(targetTemperature);
     this.platform.log.debug('setCoolingThresholdTemperature ->', value, targetTemperature);
@@ -104,8 +104,8 @@ export class ArgoAccessory {
       ? this.platform.Characteristic.Active.ACTIVE
       : this.platform.Characteristic.Active.INACTIVE,
     );
-    this.currentTemperature.updateValue((parseInt(parts[1]) / 10) + (this.offset ?? 0));
-    this.coolingThresholdTemperature.updateValue((parseInt(parts[0]) / 10) + (this.offset ?? 0));
+    this.currentTemperature.updateValue((parseInt(parts[1]) / 10) + this.offset);
+    this.coolingThresholdTemperature.updateValue((parseInt(parts[0]) / 10) + this.offset);
     this.targetHeaterCoolerState.updateValue(parseInt(parts[3]) === 1
       ? this.platform.Characteristic.TargetHeaterCoolerState.COOL
       : this.platform.Characteristic.TargetHeaterCoolerState.AUTO);

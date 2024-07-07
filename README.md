@@ -94,3 +94,27 @@ To remove the traffic redirect in the future just run:
 ```bash
 iptables -t nat -D PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination <your-homebridge-ip>:<your-port>
 ```
+
+#### Alternative setup
+
+You can alternatively configure the homebridge server with the IP `31.14.128.210` and tell your router to statically route `31.14.128.210`
+to your homebridge instance.
+
+If you decide to do so please configure the listener to listen on port 80 and 31.14.128.210
+
+```json
+  "platforms": [
+    {
+      "platform": "Argo",
+      "devices": [
+        {
+          "name": "Example Display Name",
+          "ip": "192.168.5.30"
+        }
+      ],
+      "usePush": true,
+      "port": 80,
+      "host": "31.14.128.210",
+    }
+  ]
+```
