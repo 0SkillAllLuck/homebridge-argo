@@ -72,32 +72,32 @@ export class ArgoAccessory {
     const operatingMode = value === this.platform.Characteristic.Active.ACTIVE ? 1 : 0;
 
     this.api.setOperatingMode(operatingMode);
-    this.platform.log.debug('setActive ->', value, operatingMode);
+    this.platform.log.info('setActive ->', value, operatingMode);
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
     const targetTemperature = (value as number) - this.offset * 10;
 
     this.api.setTargetTemperature(targetTemperature);
-    this.platform.log.debug('setCoolingThresholdTemperature ->', value, targetTemperature);
+    this.platform.log.info('setCoolingThresholdTemperature ->', value, targetTemperature);
   }
 
   async setTargetHeaterCoolerState(value: CharacteristicValue): Promise<void> {
     const operationMode = value === this.platform.Characteristic.TargetHeaterCoolerState.COOL ? 1 : 5;
 
     this.api.setOperationMode(operationMode);
-    this.platform.log.debug('setTargetHeaterCoolerState ->', value, operationMode);
+    this.platform.log.info('setTargetHeaterCoolerState ->', value, operationMode);
   }
 
   async setRotationSpeed(value: CharacteristicValue): Promise<void> {
     const fanMode = value as 1 | 2 | 3 | 4 | 5 | 6;
 
     this.api.setFanMode(fanMode);
-    this.platform.log.debug('setRotationSpeed ->', value, fanMode);
+    this.platform.log.info('setRotationSpeed ->', value, fanMode);
   }
 
   updateState(hmi: string): void {
-    this.platform.log.debug('updateState ->', hmi);
+    this.platform.log.info('updateState ->', hmi);
     const parts = hmi.split(',');
 
     this.active.updateValue(parseInt(parts[2]) === 1

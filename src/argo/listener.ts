@@ -34,12 +34,12 @@ export class ArgoListener {
 
   private handleGET(req: Request, res: Response): void {
     if (req.query.CM === 'UI_NTP') {
-      this.log.debug('Listener UI_NTP');
+      this.log.debug('Listener UI_NTP', req.query);
       res.send(`NTP ${format(new Date(), 'yyyy-MM-dd\'T\'HH:mm:ssXXX')} UI SERVER (M.A.V. srl)`);
       return;
     }
     if (req.query.CM === 'UI_FLG') {
-      this.log.debug('Listener UI_FLG');
+      this.log.debug('Listener UI_FLG', req.query);
       res.send('{|1|0|1|0|0|0|N,N,N,N,1,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N|}[|0|||]ACN_FREE <br>\t\t');
 
       this.updateHandler(req.query.IP as string, req.query.HMI as string);
