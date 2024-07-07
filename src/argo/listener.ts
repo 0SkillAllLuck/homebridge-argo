@@ -20,7 +20,7 @@ export class ArgoListener {
 
   public start(): void {
     this.server = this.app.listen(this.port, this.host, () => {
-      this.log.info(`Listener started :${this.port}`);
+      this.log.info(`Listener started ${this.host}:${this.port}`);
     });
   }
 
