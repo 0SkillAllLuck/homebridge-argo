@@ -12,6 +12,8 @@ export class ArgoAccessory {
   private readonly currentHeaterCoolerState: Characteristic;
   private readonly rotationSpeed: Characteristic;
 
+  private isPendingRotationSpeed: boolean = false;
+
   constructor(
     private readonly platform: ArgoPlatform,
     private readonly accessory: PlatformAccessory,
@@ -69,6 +71,11 @@ export class ArgoAccessory {
   }
 
   async setActive(value: CharacteristicValue): Promise<void> {
+    // HomeKit sends a setActive request with 0 when the RotationSpeed is set to 0, so we need to ignore it
+    if (this.isPendingRotationSpeed) {
+      return;
+    }
+
     const operatingMode = value === this.platform.Characteristic.Active.ACTIVE ? 1 : 0;
 
     this.api.setOperatingMode(operatingMode);
@@ -90,6 +97,7 @@ export class ArgoAccessory {
   }
 
   async setRotationSpeed(value: CharacteristicValue): Promise<void> {
+    this.isPendingRotationSpeed = true;
     const fanMode = value as 1 | 2 | 3 | 4 | 5 | 6;
 
     this.api.setFanMode(fanMode);
@@ -131,6 +139,9 @@ export class ArgoAccessory {
 
       // Set the next poll to 5 seconds from now
       this.nextPollAt = Date.now() + 5000;
+
+      // Reset the pending rotation speed flag
+      this.isPendingRotationSpeed = false;
     } else if (Date.now() >= this.nextPollAt) {
       await this.api.sync()
         .then((hmi) => this.updateState(hmi))
