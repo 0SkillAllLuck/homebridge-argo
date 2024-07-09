@@ -83,7 +83,7 @@ export class ArgoAccessory {
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
-    const targetTemperature = (value as number) - this.offset * 10;
+    const targetTemperature = ((value as number) - this.offset) * 10;
 
     this.api.setTargetTemperature(targetTemperature);
     this.platform.log.success(`${this.name}: CoolingThresholdTemperature ->`, value, targetTemperature);
