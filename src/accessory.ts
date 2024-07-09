@@ -79,21 +79,21 @@ export class ArgoAccessory {
     const operatingMode = value === this.platform.Characteristic.Active.ACTIVE ? 1 : 0;
 
     this.api.setOperatingMode(operatingMode);
-    this.platform.log.info('setActive ->', value, operatingMode);
+    this.platform.log.success(`${this.name}: SetActive ->`, value, operatingMode);
   }
 
   async setCoolingThresholdTemperature(value: CharacteristicValue): Promise<void> {
     const targetTemperature = (value as number) - this.offset * 10;
 
     this.api.setTargetTemperature(targetTemperature);
-    this.platform.log.info('setCoolingThresholdTemperature ->', value, targetTemperature);
+    this.platform.log.success(`${this.name}: CoolingThresholdTemperature ->`, value, targetTemperature);
   }
 
   async setTargetHeaterCoolerState(value: CharacteristicValue): Promise<void> {
     const operationMode = value === this.platform.Characteristic.TargetHeaterCoolerState.COOL ? 1 : 5;
 
     this.api.setOperationMode(operationMode);
-    this.platform.log.info('setTargetHeaterCoolerState ->', value, operationMode);
+    this.platform.log.success(`${this.name}: TargetHeaterCoolerState ->`, value, operationMode);
   }
 
   async setRotationSpeed(value: CharacteristicValue): Promise<void> {
@@ -101,11 +101,11 @@ export class ArgoAccessory {
     const fanMode = value as 1 | 2 | 3 | 4 | 5 | 6;
 
     this.api.setFanMode(fanMode);
-    this.platform.log.info('setRotationSpeed ->', value, fanMode);
+    this.platform.log.success(`${this.name}: RotationSpeed ->`, value, fanMode);
   }
 
   updateState(hmi: string): void {
-    this.platform.log.info('updateState ->', hmi);
+    this.platform.log.info(`${this.name}: UpdateState ->`, hmi);
     const parts = hmi.split(',');
 
     this.active.updateValue(parseInt(parts[2]) === 1
@@ -135,7 +135,7 @@ export class ArgoAccessory {
     // If there are pending updates, sync the device
     if (needsUpdate){
       await this.api.sync()
-        .catch(() => null);
+        .catch(() => this.platform.log.error(`${this.name}: Failed to sync state`));
 
       // Set the next poll to 5 seconds from now
       this.nextPollAt = Date.now() + 5000;
@@ -145,7 +145,7 @@ export class ArgoAccessory {
     } else if (Date.now() >= this.nextPollAt) {
       await this.api.sync()
         .then((hmi) => this.updateState(hmi))
-        .catch(() => null);
+        .catch(() => this.platform.log.error(`${this.name}: Failed to update state`));
 
       // Set the next poll to 15 seconds from now
       this.nextPollAt = Date.now() + 15000;
