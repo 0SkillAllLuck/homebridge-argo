@@ -54,8 +54,23 @@ export class ArgoApi {
   }
 
   // Set the fan mode to either AUTO (0), LOWEST (1), LOW (2), MEDIUM (3), HIGH (4), HIGHER (5), or HIGHEST (6)
-  setFanMode(mode: 0 |1 | 2 | 3 | 4 | 5 | 6): void{
+  setFanMode(mode: 0 | 1 | 2 | 3 | 4 | 5 | 6): void{
     this.setHMI(mode.toString(), 4);
+  }
+
+  // Turns off (0) or on (1) the eco mode
+  setEcoMode(mode: 0 | 1): void{
+    this.setHMI(mode.toString(), 8);
+  }
+
+  // Turns off (0) or on (1) the turbo mode
+  setTurboMode(mode: 0 | 1): void{
+    this.setHMI(mode.toString(), 9);
+  }
+
+  // Turns off (0) or on (1) the night mode
+  setNightMode(mode: 0 | 1): void{
+    this.setHMI(mode.toString(), 10);
   }
 
   private setHMI(value: string, index: number) {

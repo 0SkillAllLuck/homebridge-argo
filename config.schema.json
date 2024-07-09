@@ -39,6 +39,12 @@
               "minimum": -4,
               "maximum": 4,
               "multipleOf": 0.1
+            },
+            "modeToggles": {
+              "title": "Mode Toggles",
+              "description": "Expose toggles for the different modes (Eco, Turbo, Night) as switches in HomeKit",
+              "type": "boolean",
+              "default": false
             }
           }
         }
@@ -99,7 +105,8 @@
               "description": "Advanced device settings, please read the instructions in the README first",
               "expandable": true,
               "items": [
-                "devices[].offset"
+                "devices[].offset",
+                "devices[].modeToggles"
               ]
             }
           ]

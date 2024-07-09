@@ -1,5 +1,5 @@
 
-import { API, DynamicPlatformPlugin, Logging, PlatformAccessory, PlatformConfig, Service, Characteristic, Logger } from 'homebridge';
+import { API, DynamicPlatformPlugin, Logging, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { ArgoAccessory } from './accessory.js';
@@ -57,14 +57,14 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
       const existing = this.accessories.find(accessory => accessory.UUID === uuid);
       if (existing) {
         this.log.info('Restoring existing accessory from cache:', existing.displayName);
-        this.argoAccessories.set(uuid, new ArgoAccessory(this, existing, api, device.name, device.offset));
+        this.argoAccessories.set(uuid, new ArgoAccessory(this, existing, api, device.name, device.offset, device.modeToggles));
         continue;
       }
 
       // If the device does not exist yet, create a new accessory and register it
       this.log.info('Registering new accessory:', device.name);
       const accessory = new this.api.platformAccessory(device.name, uuid);
-      this.argoAccessories.set(uuid, new ArgoAccessory(this, accessory, api, device.name, device.offset));
+      this.argoAccessories.set(uuid, new ArgoAccessory(this, accessory, api, device.name, device.offset, device.modeToggles));
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
 

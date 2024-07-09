@@ -12,6 +12,16 @@ export class ArgoAccessory {
   private readonly currentHeaterCoolerState: Characteristic;
   private readonly rotationSpeed: Characteristic;
 
+  private readonly serviceEco: Service | undefined;
+  private readonly onEco: Characteristic | undefined;
+
+  private readonly serviceTurbo: Service | undefined;
+  private readonly onTurbo: Characteristic | undefined;
+
+  private readonly serviceNight: Service | undefined;
+  private readonly onNight: Characteristic | undefined;
+
+  private nextPollAt = Date.now();
   private isPendingRotationSpeed: boolean = false;
 
   constructor(
@@ -20,6 +30,7 @@ export class ArgoAccessory {
     private readonly api: ArgoApi,
     private readonly name: string,
     private readonly offset: number = 0,
+    private readonly modeToggles: boolean = false,
   ) {
     // Setup the base accessory information
     this.information = this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -66,6 +77,50 @@ export class ArgoAccessory {
       })
       .onSet(this.setRotationSpeed.bind(this));
 
+
+    if (modeToggles) {
+    // Setup the Switch service for Eco mode
+      this.serviceEco = this.accessory.getService('Turbo Mode')
+        || this.accessory.addService(this.platform.Service.Switch, 'Eco Mode', 'Eco Mode');
+      this.serviceEco.setCharacteristic(this.platform.Characteristic.Name, 'Eco Mode');
+      this.serviceEco.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+      this.serviceEco.setCharacteristic(this.platform.Characteristic.ConfiguredName, this.name + ' Eco Mode');
+      this.onEco = this.serviceEco.getCharacteristic(this.platform.Characteristic.On)
+        .onSet(this.setOnEco.bind(this));
+
+      // Setup the Switch service for Turbo mode
+      this.serviceTurbo = this.accessory.getService('Turbo Mode')
+                || this.accessory.addService(this.platform.Service.Switch, 'Turbo Mode', 'Turbo Mode');
+      this.serviceTurbo.setCharacteristic(this.platform.Characteristic.Name, 'Turbo Mode');
+      this.serviceTurbo.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+      this.serviceTurbo.setCharacteristic(this.platform.Characteristic.ConfiguredName, this.name + ' Turbo Mode');
+      this.onTurbo = this.serviceTurbo.getCharacteristic(this.platform.Characteristic.On)
+        .onSet(this.setOnTurbo.bind(this));
+
+      // Setup the Switch service for Night mode
+      this.serviceNight = this.accessory.getService('Night Mode')
+            || this.accessory.addService(this.platform.Service.Switch, 'Night Mode', 'Night Mode');
+      this.serviceNight.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
+      this.serviceNight.setCharacteristic(this.platform.Characteristic.Name, 'Night Mode');
+      this.serviceNight.setCharacteristic(this.platform.Characteristic.ConfiguredName, this.name + ' Night Mode');
+      this.onNight = this.serviceNight.getCharacteristic(this.platform.Characteristic.On)
+        .onSet(this.setOnNight.bind(this));
+    } else {
+      // Remove the services if they are not needed
+      this.serviceEco = this.accessory.getService('Eco Mode');
+      if (this.serviceEco) {
+        this.accessory.removeService(this.serviceEco);
+      }
+      this.serviceTurbo = this.accessory.getService('Turbo Mode');
+      if (this.serviceTurbo) {
+        this.accessory.removeService(this.serviceTurbo);
+      }
+      this.serviceNight = this.accessory.getService('Night Mode');
+      if (this.serviceNight) {
+        this.accessory.removeService(this.serviceNight);
+      }
+    }
+
     // Start the polling loop
     this.syncDevice();
   }
@@ -104,6 +159,42 @@ export class ArgoAccessory {
     this.platform.log.success(`${this.name}: RotationSpeed ->`, value, fanMode);
   }
 
+  async setOnEco(value: CharacteristicValue): Promise<void> {
+    const ecoMode = value ? 1 : 0;
+    // Only one mode can be active at a time
+    if (ecoMode === 1) {
+      this.api.setTurboMode(0);
+      this.api.setNightMode(0);
+    }
+
+    this.api.setEcoMode(ecoMode);
+    this.platform.log.success(`${this.name}: OnEco ->`, value, ecoMode);
+  }
+
+  async setOnTurbo(value: CharacteristicValue): Promise<void> {
+    const turboMode = value ? 1 : 0;
+    // Only one mode can be active at a time
+    if (turboMode === 1) {
+      this.api.setEcoMode(0);
+      this.api.setNightMode(0);
+    }
+
+    this.api.setTurboMode(turboMode);
+    this.platform.log.success(`${this.name}: OnTurbo ->`, value, turboMode);
+  }
+
+  async setOnNight(value: CharacteristicValue): Promise<void> {
+    const nightMode = value ? 1 : 0;
+    // Only one mode can be active at a time
+    if (nightMode === 1) {
+      this.api.setEcoMode(0);
+      this.api.setTurboMode(0);
+    }
+
+    this.api.setNightMode(nightMode);
+    this.platform.log.success(`${this.name}: OnNight ->`, value, nightMode);
+  }
+
   updateState(hmi: string): void {
     this.platform.log.info(`${this.name}: UpdateState ->`, hmi);
     const parts = hmi.split(',');
@@ -124,10 +215,16 @@ export class ArgoAccessory {
       : this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE);
     this.rotationSpeed.updateValue(parseInt(parts[4]));
 
+    // Update the mode toggles if they are enabled
+    if (this.modeToggles) {
+      this.onEco?.updateValue(parseInt(parts[8]) === 1);
+      this.onTurbo?.updateValue(parseInt(parts[9]) === 1);
+      this.onNight?.updateValue(parseInt(parts[10]) === 1);
+    }
+
     this.information.setCharacteristic(this.platform.Characteristic.FirmwareRevision, parseInt(parts[23]).toFixed(0));
   }
 
-  private nextPollAt = Date.now();
   private async syncDevice(): Promise<void> {
     // Store if an update was pending
     const needsUpdate = this.api.pending();
