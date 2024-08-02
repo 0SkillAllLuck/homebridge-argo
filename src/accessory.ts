@@ -152,7 +152,10 @@ export class ArgoAccessory {
   }
 
   async setRotationSpeed(value: CharacteristicValue): Promise<void> {
+    // HomeKit sends a setActive request with 0 when the RotationSpeed is set to 0, so we might need to turn it back on
+    this.api.setOperatingMode(1);
     this.isPendingRotationSpeed = true;
+
     const fanMode = value as 1 | 2 | 3 | 4 | 5 | 6;
 
     this.api.setFanMode(fanMode);
@@ -248,12 +251,13 @@ export class ArgoAccessory {
       this.nextPollAt = Date.now() + 15000;
     }
 
-    // If push is in use, set the next poll to 1 minute from now
+    // If push is in use, increase the poll by 1 minute more
+    // This is just in case that the device stops sending updates
     if (this.platform.config.usePush) {
-      this.nextPollAt += + 60000;
+      this.nextPollAt += 60000;
     }
 
-    // Schedule the next poll 1 second
-    setTimeout(this.syncDevice.bind(this), 1000);
+    // Schedule the next check for polling in 0.5s
+    setTimeout(this.syncDevice.bind(this), 500);
   }
 }
