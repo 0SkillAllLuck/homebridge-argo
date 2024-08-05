@@ -122,6 +122,7 @@ export class ArgoAccessory {
     }
 
     // Start the polling loop
+    this.nextPollAt += this.platform.config.usePush ? 60000 : 1000;
     this.syncDevice();
   }
 
