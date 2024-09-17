@@ -81,7 +81,7 @@ export class ArgoAccessory {
 
     if (modeToggles) {
       // Setup the Switch service for Eco mode
-      this.serviceEco = this.accessory.getService('Turbo Mode')
+      this.serviceEco = this.accessory.getService('Eco Mode')
         || this.accessory.addService(this.platform.Service.Switch, 'Eco Mode', 'Eco Mode');
       this.serviceEco.setCharacteristic(this.platform.Characteristic.Name, 'Eco Mode');
       this.serviceEco.addOptionalCharacteristic(this.platform.Characteristic.ConfiguredName);
