@@ -65,6 +65,7 @@ export class ArgoAccessory {
       .setProps({
         validValues: [
           this.platform.Characteristic.TargetHeaterCoolerState.COOL,
+          this.platform.Characteristic.TargetHeaterCoolerState.AUTO,
         ],
       })
       .onSet(this.setTargetHeaterCoolerState.bind(this));
@@ -200,33 +201,45 @@ export class ArgoAccessory {
   }
 
   updateState(hmi: string): void {
-    this.platform.log.info(`${this.name}: UpdateState ->`, hmi);
+    this.platform.log.debug(`${this.name}: UpdateState ->`, hmi);
     const parts = hmi.split(',');
 
-    this.active.updateValue(parseInt(parts[2]) === 1
+    const updated: string[] = [];
+    this.updateValue(updated, this.active, 'active', parseInt(parts[2]) === 1
       ? this.platform.Characteristic.Active.ACTIVE
-      : this.platform.Characteristic.Active.INACTIVE,
-    );
-    this.currentTemperature.updateValue((parseInt(parts[1]) / 10) + this.offset);
-    this.coolingThresholdTemperature.updateValue((parseInt(parts[0]) / 10) + this.offset);
-    this.targetHeaterCoolerState.updateValue(parseInt(parts[3]) === 1
+      : this.platform.Characteristic.Active.INACTIVE);
+    this.updateValue(updated, this.currentTemperature, 'currentTemperature', (parseInt(parts[1]) / 10) + this.offset);
+    this.updateValue(updated, this.coolingThresholdTemperature, 'coolingThresholdTemperature', (parseInt(parts[0]) / 10) + this.offset);
+    this.updateValue(updated, this.targetHeaterCoolerState, 'targetHeaterCoolerState', parseInt(parts[3]) === 1
       ? this.platform.Characteristic.TargetHeaterCoolerState.COOL
       : this.platform.Characteristic.TargetHeaterCoolerState.AUTO);
-    this.currentHeaterCoolerState.updateValue(parseInt(parts[2]) === 1
+    this.updateValue(updated, this.currentHeaterCoolerState, 'currentHeaterCoolerState', parseInt(parts[2]) === 1
       ? parseInt(parts[1]) > parseInt(parts[0])
         ? this.platform.Characteristic.CurrentHeaterCoolerState.COOLING
         : this.platform.Characteristic.CurrentHeaterCoolerState.IDLE
       : this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE);
-    this.rotationSpeed.updateValue(parseInt(parts[4]));
+    this.updateValue(updated, this.rotationSpeed, 'rotationSpeed', parseInt(parts[4]));
 
     // Update the mode toggles if they are enabled
     if (this.modeToggles) {
-      this.onEco?.updateValue(parseInt(parts[8]) === 1);
-      this.onTurbo?.updateValue(parseInt(parts[9]) === 1);
-      this.onNight?.updateValue(parseInt(parts[10]) === 1);
+      this.updateValue(updated, this.onEco!, 'onEco', parseInt(parts[8]) === 1);
+      this.updateValue(updated, this.onTurbo!, 'onTurbo', parseInt(parts[9]) === 1);
+      this.updateValue(updated, this.onNight!, 'onNight', parseInt(parts[10]) === 1);
+    }
+
+    // Log the updated fields
+    if (updated.length > 0) {
+      this.platform.log.info(`${this.name}: Updated ->`, updated.join(', '));
     }
 
     this.information.setCharacteristic(this.platform.Characteristic.FirmwareRevision, parseInt(parts[23]).toFixed(0));
+  }
+
+  private updateValue(updatedValues: string[], characteristic: Characteristic, name: string, value: CharacteristicValue): void {
+    if (characteristic.value !== value) {
+      characteristic.updateValue(value);
+      updatedValues.push(`${name}=${value}`);
+    }
   }
 
   private async syncDevice(): Promise<void> {
