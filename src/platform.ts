@@ -5,6 +5,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { ArgoAccessory } from './accessory.js';
 import { ArgoListener } from './argo/listener.js';
 import { ArgoApi } from './argo/api.js';
+import { isArray, isBoolean, isNumber, isObject, isString } from 'util';
 
 export class ArgoPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service;
@@ -23,28 +24,90 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
     this.Characteristic = api.hap.Characteristic;
 
     this.listener = config.usePush
-      ? new ArgoListener(log, this.config.port, this.config.host, this.onPushUpdate.bind(this))
+      ? new ArgoListener(
+        log,
+        this.config.port ?? 42420,
+        this.config.host ?? '0.0.0.0',
+        this.onPushUpdate.bind(this),
+      )
       : undefined;
 
     api.on('didFinishLaunching', this.onDidFinishLaunching.bind(this));
     api.on('shutdown', this.onShutdown.bind(this));
   }
 
-  configureAccessory(accessory: PlatformAccessory) {
+  configureAccessory(accessory: PlatformAccessory): void {
     this.accessories.push(accessory);
   }
 
-  private onDidFinishLaunching() {
-    this.syncConfiguredDevices();
+  private onDidFinishLaunching(): void {
+    if (this.validateConfig()) {
+      this.syncConfiguredDevices();
+    }
     this.listener?.start();
   }
 
-  private onShutdown() {
+  private onShutdown(): void {
     this.listener?.stop();
   }
 
+  private validateConfig(): boolean {
+    if (!Array.isArray(this.config.devices)) {
+      this.log.error('Invalid configuration: devices must be an array');
+      return false;
+    }
+    if (this.config.devices.length === 0) {
+      this.log.error('Invalid configuration: devices array must not be empty');
+      return false;
+    }
+
+    for (const device of this.config.devices) {
+      if (!isObject(device)) {
+        this.log.error('Invalid configuration: device must be an object');
+        return false;
+      }
+
+      if (isString(device.name)) {
+        this.log.error('Invalid configuration: device name must be a string');
+        return false;
+      }
+
+      if (!isString(device.ip)) {
+        this.log.error('Invalid configuration: device IP must be a string');
+        return false;
+      }
+
+      if (device.offset && !isNumber(device.offset)) {
+        this.log.error('Invalid configuration: device offset must be a number');
+        return false;
+      }
+
+      if (device.modeToggles && !isBoolean(device.modeToggles)) {
+        this.log.error('Invalid configuration: device modeToggles must be a boolean');
+        return false;
+      }
+    }
+
+    if (!isBoolean(this.config.usePush)) {
+      this.log.error('Invalid configuration: usePush must be a boolean');
+      return false;
+    }
+
+    if (this.config.usePush && !isString(this.config.host)) {
+      this.log.error('Invalid configuration: host must be a string');
+      return false;
+    }
+
+    if (this.config.usePush && !isNumber(this.config.port)) {
+      this.log.error('Invalid configuration: port must be a number');
+      return false;
+    }
+
+    return true;
+  }
+
   // Synchronize the configured devices with the cached accessories, creating new ones if necessary and removing old ones
-  private syncConfiguredDevices() {
+  private syncConfiguredDevices(): void {
     // Iterate over the configured devices, adding them to the list of configured UUIDs and argo accessories
     for (const device of this.config.devices) {
       // Calculate the UUID for the configured device
@@ -57,14 +120,34 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
       const existing = this.accessories.find(accessory => accessory.UUID === uuid);
       if (existing) {
         this.log.info('Restoring existing accessory from cache:', existing.displayName);
-        this.argoAccessories.set(uuid, new ArgoAccessory(this, existing, api, device.name, device.offset, device.modeToggles));
+        this.argoAccessories.set(
+          uuid,
+          new ArgoAccessory(
+            this,
+            existing,
+            api,
+            device.name,
+            device.offset ?? 0,
+            device.modeToggles ?? false,
+          ),
+        );
         continue;
       }
 
       // If the device does not exist yet, create a new accessory and register it
       this.log.info('Registering new accessory:', device.name);
       const accessory = new this.api.platformAccessory(device.name, uuid);
-      this.argoAccessories.set(uuid, new ArgoAccessory(this, accessory, api, device.name, device.offset, device.modeToggles));
+      this.argoAccessories.set(
+        uuid,
+        new ArgoAccessory(
+          this,
+          accessory,
+          api,
+          device.name,
+          device.offset ?? 0,
+          device.modeToggles ?? false,
+        ),
+      );
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
 
