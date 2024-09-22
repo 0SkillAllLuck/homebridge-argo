@@ -23,6 +23,10 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
     this.Service = api.hap.Service;
     this.Characteristic = api.hap.Characteristic;
 
+    if (!this.validateConfig()) {
+      return;
+    }
+
     this.listener = config.usePush
       ? new ArgoListener(
         log,
@@ -31,7 +35,6 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
         this.onPushUpdate.bind(this),
       )
       : undefined;
-
     api.on('didFinishLaunching', this.onDidFinishLaunching.bind(this));
     api.on('shutdown', this.onShutdown.bind(this));
   }
@@ -62,43 +65,43 @@ export class ArgoPlatform implements DynamicPlatformPlugin {
     }
 
     for (const device of this.config.devices) {
-      if (!isObject(device)) {
+      if (typeof device !== 'object') {
         this.log.error('Invalid configuration: device must be an object');
         return false;
       }
 
-      if (isString(device.name)) {
+      if (typeof device.name !== 'string') {
         this.log.error('Invalid configuration: device name must be a string');
         return false;
       }
 
-      if (!isString(device.ip)) {
+      if (typeof device.ip !== 'string') {
         this.log.error('Invalid configuration: device IP must be a string');
         return false;
       }
 
-      if (device.offset && !isNumber(device.offset)) {
+      if (device.offset && typeof device.offset !== 'number') {
         this.log.error('Invalid configuration: device offset must be a number');
         return false;
       }
 
-      if (device.modeToggles && !isBoolean(device.modeToggles)) {
+      if (device.modeToggles && typeof device.modeToggles !== 'boolean') {
         this.log.error('Invalid configuration: device modeToggles must be a boolean');
         return false;
       }
     }
 
-    if (!isBoolean(this.config.usePush)) {
+    if (typeof this.config.usePush !== 'boolean') {
       this.log.error('Invalid configuration: usePush must be a boolean');
       return false;
     }
 
-    if (this.config.usePush && !isString(this.config.host)) {
+    if (this.config.usePush && typeof this.config.port !== 'number') {
       this.log.error('Invalid configuration: host must be a string');
       return false;
     }
 
-    if (this.config.usePush && !isNumber(this.config.port)) {
+    if (this.config.usePush && typeof this.config.host !== 'string') {
       this.log.error('Invalid configuration: port must be a number');
       return false;
     }
