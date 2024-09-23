@@ -1,4 +1,6 @@
 # Homebridge Argo
+
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![Downloads](https://img.shields.io/npm/dt/homebridge-argo.svg)](https://www.npmjs.com/package/homebridge-argo)
 [![Version](https://img.shields.io/npm/v/homebridge-argo.svg)](https://www.npmjs.com/package/homebridge-argo)
 [![GitHub issues](https://img.shields.io/github/issues/0skillallluck/homebridge-argo)](https://github.com/0skillallluck/homebridge-argo/issues)
