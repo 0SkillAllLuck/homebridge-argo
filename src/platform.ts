@@ -5,7 +5,6 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { ArgoAccessory } from './accessory.js';
 import { ArgoListener } from './argo/listener.js';
 import { ArgoApi } from './argo/api.js';
-import { isArray, isBoolean, isNumber, isObject, isString } from 'util';
 
 export class ArgoPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service;
